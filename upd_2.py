@@ -27,6 +27,8 @@ class PopulationModelApp:
         # Параметры эпидемий (по умолчанию отключены)
         self.include_epidemics = True
         self.disease_max = 1
+        self.epidemic_period_entry = 100
+
 
         # Управление анимацией
         self.is_paused = False
@@ -51,8 +53,10 @@ class PopulationModelApp:
 
         # Кнопка "Доп параметры", появляющаяся только при учете эпидемий
         self.epid_parame = tk.Button(self.top_frame, text="Доп параметры", command=self.epid_parameters)
-        if self.include_epidemics == True: self.epid_parame.pack(side=tk.LEFT)
-        else: self.epid_parame.pack(side=tk.LEFT)
+        if self.include_epidemics == True:
+            self.epid_parame.pack(side=tk.LEFT)
+        else:
+            self.epid_parame.pack(side=tk.LEFT)
         # self.epid_parame.pack_forget()  # Скрыта по умолчанию
 
 
@@ -97,14 +101,14 @@ class PopulationModelApp:
                 self.growth_rate = [0.01] * self.num_species
                 self.interaction_matrix = [[0] * self.num_species for _ in range(self.num_species)]
                 if self.include_epidemics:
-                    self.beta = [0.001] * self.num_species
-                    self.gamma = [0.1] * self.num_species
-                    self.initial_infected = [10] * self.num_species
+                    # self.beta = [0.001] * self.num_species
+                    # self.gamma = [0.1] * self.num_species
+                    # self.initial_infected = [10] * self.num_species
                     self.epid_parame.pack(side=tk.LEFT)  # Показываем кнопку "Доп параметры"
                 else:
-                    self.beta = []
-                    self.gamma = []
-                    self.initial_infected = []
+                    # self.beta = []
+                    # self.gamma = []
+                    # self.initial_infected = []
                     self.epid_parame.pack_forget()  # Скрываем кнопку "Доп параметры"
                 self.update_population_labels()
                 new_system_window.destroy()
@@ -242,7 +246,7 @@ class PopulationModelApp:
         # Период эпидемии
         tk.Label(epid_param_window, text="Период эпидемии (T):").grid(row=1, column=0)
         epidemic_period_entry = tk.Entry(epid_param_window)
-        epidemic_period_entry.insert(0, str(self.modeling_time))
+        epidemic_period_entry.insert(0, str(self.epidemic_period_entry))
         epidemic_period_entry.grid(row=1, column=1)
 
         # Чекбокс для включения эпидемии
@@ -253,9 +257,10 @@ class PopulationModelApp:
         def save_epid_parameters():
             try:
                 self.disease_max = float(disease_max_entry.get())
-                self.modeling_time = float(epidemic_period_entry.get())
+                self.epidemic_period_entry = float(epidemic_period_entry.get())
                 self.include_epidemics = include_epidemics_var.get()
                 # messagebox.showinfo("Успешно", "Параметры эпидемии сохранены.")
+                self.update_population_labels()
                 epid_param_window.destroy()
             except ValueError:
                 messagebox.showerror("Ошибка", "Введите корректные значения.")
@@ -311,7 +316,7 @@ class PopulationModelApp:
             dN_dt = []
             for i in range(len(N)):
                 # Рассчитываем плавное воздействие эпидемии
-                Ai = disease_max * np.sin(2 * np.pi * t / self.modeling_time)
+                Ai = disease_max * np.sin(2 * np.pi * t / self.epidemic_period_entry)
                 Ai = max(0, Ai)  # Учитываем только положительное воздействие эпидемии
 
                 # Основное уравнение
