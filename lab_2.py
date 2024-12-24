@@ -307,17 +307,20 @@ class PopulationModelApp:
             for k in range(self.num_species):
                 self.population_labels[k].config(text=f"Популяция {k + 1}: {int(result[i, k])}")
 
-        self.ani = FuncAnimation(self.figure, animate, frames=len(t), interval=100, repeat=False)
+        self.ani = FuncAnimation(self.figure, animate, frames=len(t), interval=0, repeat=False)
 
         self.canvas.draw()
 
     def run_epidemic_model(self):
         def epidemic_dynamics(N, t, growth_rate, interaction_matrix, disease_max):
             dN_dt = []
+            print(type(N))
             for i in range(len(N)):
                 # Рассчитываем плавное воздействие эпидемии
-                Ai = disease_max * np.sin(2 * np.pi * t / self.epidemic_period_entry)
-                Ai = max(0, Ai)  # Учитываем только положительное воздействие эпидемии
+                Ai = 0  # По умолчанию воздействие равно нулю
+                if i == 0:  # Применяем воздействие только к первой популяции
+                    Ai = disease_max * np.sin(2 * np.pi * t / self.epidemic_period_entry)
+                    Ai = max(0, Ai)  # Учитываем только положительное воздействие эпидемии
 
                 # Основное уравнение
                 rate = growth_rate[i] * N[i]
@@ -327,6 +330,7 @@ class PopulationModelApp:
                 # Устанавливаем ограничение: численность не может быть меньше нуля
                 new_population = max(0, N[i] + change * self.diff_step)
                 dN_dt.append(new_population - N[i])  # Производная
+
             return dN_dt
 
         t = np.linspace(0, self.modeling_time, int(self.modeling_time / self.diff_step))
